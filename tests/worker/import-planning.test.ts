@@ -912,6 +912,35 @@ describe('pending import plans', () => {
     service.closeAll();
   });
 
+  it.each([false, true])('continues past staged source failures (applyToRest=%s)', (applyToRest) => {
+    const root = temporaryRoot();
+    const sources = ['first.png', 'changed-a.png', 'changed-b.png', 'last.png'].map((name) => path.join(root, name));
+    for (const [index, source] of sources.entries()) writeFileSync(source, `original-${index}`);
+    const service = new LibraryService({
+      afterSourceSnapshotCopy: (sourcePath) => {
+        if (path.basename(sourcePath).startsWith('changed-')) writeFileSync(sourcePath, 'changed during copy');
+      },
+    });
+    try {
+      const library = service.createLibrary({ displayName: 'Resume source failures', selectedParentPath: root });
+      let outcome: ReturnType<LibraryService['continueAfterSourceFailure']> = service.prepareImport({ libraryId: library.libraryId, sourceKind: 'files', sourcePaths: sources });
+      expect(isImportSourceFailurePlan(outcome)).toBe(true);
+      let pauses = 0;
+      while (isImportSourceFailurePlan(outcome)) {
+        expect(++pauses).toBeLessThanOrEqual(2);
+        outcome = service.continueAfterSourceFailure({ importId: outcome.importId, applyToRest });
+      }
+      expect(outcome).toMatchObject({ importedCount: 2 });
+      expect(readFileSync(path.join(library.libraryPath, 'Assets', 'first.png'), 'utf8')).toBe('original-0');
+      expect(readFileSync(path.join(library.libraryPath, 'Assets', 'last.png'), 'utf8')).toBe('original-3');
+      expect(existsSync(path.join(library.libraryPath, 'Assets', 'changed-a.png'))).toBe(false);
+      expect(existsSync(path.join(library.libraryPath, 'Assets', 'changed-b.png'))).toBe(false);
+      expect(existsSync(path.join(library.libraryPath, '.serpent', 'operations'))).toBe(false);
+    } finally {
+      service.closeAll();
+    }
+  });
+
   it('resolves from the staged snapshot after the original source changes or disappears', () => {
     const root = temporaryRoot();
     const source = path.join(root, 'snapshot.png');

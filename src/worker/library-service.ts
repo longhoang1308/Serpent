@@ -49343,6 +49343,10 @@ export class LibraryService {
         input.onStagedEntry?.(index + 1, staged.byteSize);
       } catch (error) {
         if (!isSkippableImportSourceFailure(error)) throw error;
+        // A source may change after its snapshot has been written. Discard
+        // that failed snapshot before the next entry reuses this stage slot,
+        // including when the user resumes after a source-failure prompt.
+        rmSync(stagedPath, { force: true });
         const skippedEntry = skippedImportSourceFromError(error, entry.sourcePath);
         skipped.push(skippedEntry);
         if (!input.skipRemainingSourceFailures) {
