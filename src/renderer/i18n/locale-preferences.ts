@@ -5,8 +5,8 @@ import type { AppLocale } from './types';
 /**
  * Locale preference persistence (REQ-I18N-001).
  *
- * Default preference is `system` (follow OS language). Effective locale is
- * resolved to `zh-CN` or `en`. E2E copies `__SERPENT_E2E_LOCALE__` into the
+ * Default preference is `en` in this fork. Users can still choose `system`
+ * (follow OS language) or `zh-CN`. E2E copies `__SERPENT_E2E_LOCALE__` into the
  * renderer main world from preload so Chinese selectors stay stable when
  * preference is still `system` on a non-Chinese host.
  */
@@ -27,8 +27,8 @@ export const LOCALE_PREF_KEY = 'serpent.locale-prefs.v1';
 /** Fallback catalog / translator fallback when a key is missing. */
 export const DEFAULT_LOCALE: AppLocale = 'zh-CN';
 
-/** First-run / empty-storage preference (product: follow system). */
-export const DEFAULT_LOCALE_PREFERENCE: LocalePreference = 'system';
+/** First-run / empty-storage preference for the English-default fork. */
+export const DEFAULT_LOCALE_PREFERENCE: LocalePreference = 'en';
 
 const localePreferencesSchema = z.object({
   version: z.literal(1),

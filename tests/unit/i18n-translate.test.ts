@@ -68,12 +68,15 @@ describe('locale preferences', () => {
     };
 
     expect(loadLocalePreferences(storage).locale).toBe(DEFAULT_LOCALE_PREFERENCE);
-    expect(DEFAULT_LOCALE_PREFERENCE).toBe('system');
+    expect(DEFAULT_LOCALE_PREFERENCE).toBe('en');
+    expect(resolveEffectiveLocale(loadLocalePreferences(storage).locale, 'zh-CN')).toBe('en');
     setStoredLocale('en', storage);
     expect(loadLocalePreferences(storage).locale).toBe('en');
     expect(memory.get(LOCALE_PREF_KEY)).toContain('"en"');
     setStoredLocale('system', storage);
     expect(loadLocalePreferences(storage).locale).toBe('system');
+    setStoredLocale('zh-CN', storage);
+    expect(loadLocalePreferences(storage).locale).toBe('zh-CN');
   });
 
   it('resolves system preference from language tags', () => {
