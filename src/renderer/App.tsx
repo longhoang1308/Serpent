@@ -9874,8 +9874,12 @@ function AppInner() {
 
   // --- Existing operations ---
 
-  async function importAssets(kind: "files" | "folder") {
+  async function importAssets(
+    kind: "files" | "folder",
+    options?: { targetCollectionId?: string },
+  ) {
     if (!api || !library) return;
+    const targetCollectionId = options?.targetCollectionId;
     const startedAt = Date.now();
     setUiState("importing");
     setError(null);
@@ -9911,8 +9915,26 @@ function AppInner() {
         },
       });
       if (!completion) return;
-      setNotice(importSummaryMessage(completion, locale));
-      await revealAfterImport(completion);
+      if (targetCollectionId && completion.assets.length > 0) {
+        // Dialog import lands in the library; joining the collection is a
+        // second step so the empty-collection CTA fills the collection.
+        const added = await api.addCollectionAssets({
+          libraryId: library.libraryId,
+          collectionId: targetCollectionId,
+          assetIds: completion.assets.map((asset) => asset.assetId),
+        });
+        if (!added.ok) throw new LibraryOperationError(added.error);
+        const collectionResult = await api.listCollections({
+          libraryId: library.libraryId,
+        });
+        if (collectionResult.ok) setCollections(collectionResult.value);
+        setNotice(importSummaryMessage(completion, locale));
+        setFolderBrowseRefreshToken((token) => token + 1);
+        await reloadCurrentContent({ blockingNavigation: true });
+      } else {
+        setNotice(importSummaryMessage(completion, locale));
+        await revealAfterImport(completion);
+      }
       offerPostImportImageSequences(completion.assets);
       playTaskCompletionSound(startedAt);
     } catch (caught) {
@@ -15907,7 +15929,14 @@ function AppInner() {
                     <button
                       className="primary-button"
                       disabled={libraryLoading !== null}
-                      onClick={() => void importAssets("files")}
+                      onClick={() =>
+                        void importAssets("files", {
+                          targetCollectionId:
+                            browseEmptyState.kind === "collection"
+                              ? activeCollectionId ?? undefined
+                              : undefined,
+                        })
+                      }
                       type="button"
                     >
                       {t("toolbar.importFiles")}
@@ -15915,7 +15944,14 @@ function AppInner() {
                     <button
                       className="secondary-button"
                       disabled={libraryLoading !== null}
-                      onClick={() => void importAssets("folder")}
+                      onClick={() =>
+                        void importAssets("folder", {
+                          targetCollectionId:
+                            browseEmptyState.kind === "collection"
+                              ? activeCollectionId ?? undefined
+                              : undefined,
+                        })
+                      }
                       type="button"
                     >
                       {t("toolbar.importFolder")}
