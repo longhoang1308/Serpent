@@ -49,7 +49,6 @@ describe("library lifecycle detach rules", () => {
           source: "replacement-restore",
         },
         currentLibraryId: undefined,
-        scriptSandboxPreviewOpen: false,
       }),
     ).toBe(true);
   });

@@ -296,6 +296,7 @@ export const zhCN = {
     clearSearchHistory: "清空",
     searchingFor: "正在搜索：{query}",
     importFiles: "导入文件",
+    importFile: "导入文件",
     importFolder: "导入文件夹",
     importExternalLibrary: "导入外部资源库",
     importEagleLibrary: "导入 Eagle 资源库",

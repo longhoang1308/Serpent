@@ -308,6 +308,7 @@ export const en = {
     clearSearchHistory: "Clear",
     searchingFor: "Searching: {query}",
     importFiles: "Import files",
+    importFile: "Import file",
     importFolder: "Import folder",
     importExternalLibrary: "Import external library",
     importEagleLibrary: "Import Eagle library",

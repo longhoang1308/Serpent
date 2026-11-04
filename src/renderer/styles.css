@@ -263,7 +263,6 @@
   box-shadow: var(--shadow-menu);
 }
 
-
 * {
   box-sizing: border-box;
 }
@@ -662,7 +661,6 @@ body.platform-darwin .app-shell.left-collapsed .toolbar-workspace-cluster {
 :root[data-platform="windows"] .toolbar-inspector-cluster {
   padding-right: calc(3 * var(--windows-caption-width, 46px) + 14px);
 }
-
 
 .windows-window-controls {
   /* Serpent-52a9b4: portaled to document.body — position: fixed and the
@@ -3568,35 +3566,6 @@ body.platform-darwin .app-shell.left-collapsed .toolbar-workspace-cluster {
   order: -2;
 }
 
-.workspace-tools-overflow {
-  position: relative;
-  flex: 0 0 auto;
-  order: 1;
-}
-
-.workspace-tools-overflow-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: var(--ui-layer-menu);
-  min-width: 180px;
-  padding: 4px;
-  border: 1px solid var(--border);
-  border-radius: calc(8px * var(--ui-radius-scale, 1));
-  background: color-mix(in srgb, var(--menu-surface-background) 92%, transparent);
-  box-shadow: var(--shadow-menu);
-  backdrop-filter: blur(14px) saturate(120%);
-}
-
-.workspace-tools-overflow-item-indicator {
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
 .tool-group-utility {
   display: flex;
   flex: 0 0 auto;
@@ -3813,7 +3782,6 @@ input[type="range"] {
 .asset-grid .trash-folder-group-header:first-child {
   margin-top: 0;
 }
-
 
 .empty-state,
 .library-state {
@@ -4505,9 +4473,7 @@ body.serpent-modal-open .app-shell {
 :root[data-menu-acrylic="0"]
   .main-menu-submenu,
 :root[data-menu-acrylic="0"]
-  .library-switcher-menu,
-:root[data-menu-acrylic="0"]
-  .workspace-tools-overflow-menu {
+  .library-switcher-menu {
   background: var(--menu-surface-background);
   backdrop-filter: none;
 }
@@ -4517,9 +4483,7 @@ body.serpent-modal-open .app-shell {
 :root[data-menu-acrylic="1"]
   .main-menu-submenu,
 :root[data-menu-acrylic="1"]
-  .library-switcher-menu,
-:root[data-menu-acrylic="1"]
-  .workspace-tools-overflow-menu {
+  .library-switcher-menu {
   background: color-mix(in srgb, var(--menu-surface-background) 92%, transparent);
   backdrop-filter: blur(14px) saturate(120%);
 }
@@ -4529,9 +4493,7 @@ body.serpent-modal-open .app-shell {
 :root[data-menu-acrylic="2"]
   .main-menu-submenu,
 :root[data-menu-acrylic="2"]
-  .library-switcher-menu,
-:root[data-menu-acrylic="2"]
-  .workspace-tools-overflow-menu {
+  .library-switcher-menu {
   background: color-mix(in srgb, var(--menu-surface-background) 84%, transparent);
   backdrop-filter: blur(20px) saturate(125%);
 }
@@ -4541,9 +4503,7 @@ body.serpent-modal-open .app-shell {
 :root[data-menu-acrylic="3"]
   .main-menu-submenu,
 :root[data-menu-acrylic="3"]
-  .library-switcher-menu,
-:root[data-menu-acrylic="3"]
-  .workspace-tools-overflow-menu {
+  .library-switcher-menu {
   background: color-mix(in srgb, var(--menu-surface-background) 74%, transparent);
   backdrop-filter: blur(28px) saturate(135%);
 }
@@ -7074,197 +7034,6 @@ body.serpent-modal-open .app-shell {
   width: min(700px, calc(100vw - 40px));
 }
 
-.script-sandbox-preview-dialog {
-  display: flex;
-  width: min(900px, calc(100vw - 40px));
-  max-height: min(860px, calc(100vh - 32px));
-  flex-direction: column;
-}
-
-.script-sandbox-preview-heading {
-  flex: 0 0 auto;
-  margin-bottom: 14px;
-}
-
-.script-sandbox-preview-heading .micro-label {
-  margin: 0 0 4px;
-}
-
-.script-sandbox-preview-heading h2 {
-  margin-top: 0;
-}
-
-.script-sandbox-preview-description {
-  display: none;
-}
-
-.script-sandbox-preview-label,
-.script-sandbox-preview-output-label,
-.script-sandbox-preview-result-title {
-  margin: 0 0 7px;
-  color: var(--secondary);
-  font-size: calc(11px * var(--ui-font-scale));
-  font-weight: var(--ui-font-weight-semibold);
-}
-
-.script-sandbox-preview-editor,
-.script-sandbox-preview-result pre {
-  width: 100%;
-  min-height: 220px;
-  margin: 0;
-  padding: 12px;
-  border: 1px solid var(--divider);
-  border-radius: calc(8px * var(--ui-radius-scale, 1));
-  background: color-mix(in srgb, var(--canvas) 72%, var(--raised));
-  color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: calc(12px * var(--ui-font-scale));
-  line-height: 1.55;
-  tab-size: 2;
-}
-
-.script-sandbox-preview-editor {
-  resize: vertical;
-}
-
-.script-sandbox-preview-editor:focus {
-  border-color: color-mix(in srgb, var(--accent) 62%, var(--divider));
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  outline: 0;
-}
-
-.script-sandbox-preview-help {
-  display: none;
-}
-
-.script-sandbox-preview-file-name {
-  margin: -3px 0 7px;
-  color: var(--secondary);
-}
-
-.script-sandbox-preview-file-error {
-  margin: -5px 0 10px;
-  color: var(--warning-fg);
-}
-
-.script-sandbox-preview-result {
-  min-height: 0;
-  flex: 1 1 280px;
-  margin-top: 2px;
-  padding: 11px 12px;
-  overflow: auto;
-  min-height: 260px;
-  border: 1px solid var(--divider-soft);
-  border-radius: calc(8px * var(--ui-radius-scale, 1));
-  background: color-mix(in srgb, var(--raised) 72%, var(--pane));
-  color: var(--secondary);
-  font-size: calc(11px * var(--ui-font-scale));
-  line-height: 1.5;
-}
-
-.script-sandbox-preview-result[data-state="running"] {
-  color: var(--accent-soft-fg);
-}
-
-.script-sandbox-preview-result[data-state="failed"] {
-  border-color: color-mix(in srgb, var(--warning) 45%, var(--divider));
-  color: var(--warning-fg);
-}
-
-.script-sandbox-preview-result p {
-  margin: 0;
-}
-
-.script-sandbox-preview-result pre {
-  min-height: 0;
-  max-height: none;
-  margin-top: 6px;
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.script-sandbox-preview-output-label {
-  margin-top: 12px !important;
-}
-
-.script-sandbox-preview-recent {
-  flex: 0 0 auto;
-  margin-bottom: 12px;
-}
-
-.script-sandbox-preview-recent-list,
-.script-sandbox-preview-history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.script-sandbox-preview-history {
-  flex: 0 0 auto;
-  margin-bottom: 12px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.script-sandbox-preview-history-list li {
-  display: grid;
-  grid-template-columns: minmax(76px, auto) minmax(70px, auto) 1fr auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 5px 8px;
-  border: 1px solid var(--divider-soft);
-  border-radius: calc(6px * var(--ui-radius-scale, 1));
-  background: color-mix(in srgb, var(--raised) 70%, transparent);
-  color: var(--secondary);
-}
-
-.script-sandbox-preview-history-status {
-  color: var(--text);
-  font-weight: var(--ui-font-weight-semibold);
-}
-
-.script-sandbox-preview-history-source,
-.script-sandbox-preview-history-count {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.script-sandbox-preview-history-action {
-  min-height: 26px;
-  padding: 3px 8px;
-  border: 1px solid var(--divider);
-  border-radius: calc(5px * var(--ui-radius-scale, 1));
-  background: transparent;
-  color: var(--secondary);
-  cursor: pointer;
-  font-size: calc(11px * var(--ui-font-scale));
-}
-
-.script-sandbox-preview-history-action:hover {
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--divider));
-  background: var(--accent-soft);
-  color: var(--accent-soft-fg);
-}
-
-.script-sandbox-preview-dialog .dialog-actions {
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--divider-soft);
-}
-
-.script-sandbox-preview-dialog .dialog-actions > button {
-  min-height: 32px;
-  border-radius: calc(6px * var(--ui-radius-scale, 1));
-  font-size: calc(12px * var(--ui-font-scale));
-}
-
 .dialog-actions-start {
   justify-content: flex-start;
 }
@@ -7672,7 +7441,6 @@ body.serpent-modal-open .app-shell {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 
 /* Library settings → Semantic search: match Sync / AI analysis polish. */
 .library-semantic-card {
@@ -8744,7 +8512,6 @@ select.ai-config-input.ai-config-languages {
     justify-content: flex-end;
   }
 }
-
 
 .app-settings-row-copy {
   display: flex;
@@ -12455,7 +12222,6 @@ select.ai-config-input.ai-config-languages {
   letter-spacing: 0.01em;
 }
 
-
 /* Floating badges on the preview use a near-opaque chip so they stay legible
    over any media (Eagle-style format/duration chips). No backdrop-filter:
    every card carries up to three chips, and a blur per chip gives each one
@@ -14567,7 +14333,6 @@ select.ai-config-input.ai-config-languages {
   100% { transform: translateX(285%); }
 }
 
-
 /* Theme color settings: two columns of aligned label/swatch pairs. */
 .app-settings-custom-theme-grid {
   display: grid;
@@ -15743,7 +15508,6 @@ select.ai-config-input.ai-config-languages {
   box-shadow: none;
 }
 
-
 /* --- Extra calm polish --- */
 /* Workspace bar must share --canvas with the active tab face so the tab
    joins the browse chrome without a tint seam under the tab. */
@@ -15784,7 +15548,6 @@ select.ai-config-input.ai-config-languages {
 :root:not([data-elevation="0"]) .inspector-pane {
   box-shadow: none;
 }
-
 
 /* --- Hover: soft wash only on nav (no border/outline/shadow) --- */
 .nav-row:hover:not(:disabled):not(.is-active) {
@@ -15829,7 +15592,6 @@ select.ai-config-input.ai-config-languages {
   background: color-mix(in srgb, var(--canvas) 70%, var(--raised));
   box-shadow: none;
 }
-
 
 /* --- Settings layout polish (app settings only) --- */
 .app-settings-dialog:not(.library-settings-dialog) .app-settings-page-heading {
@@ -15951,7 +15713,6 @@ select.ai-config-input.ai-config-languages {
   border-color: color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
-
 /* Nav rows — final cascade: soft idle wash, accent-soft active, never a border. */
 .nav-row {
   border: 1px solid transparent;
@@ -16026,7 +15787,6 @@ html.serpent-window-square.serpent-window-maximized .window-edge-resize-layer,
 html.serpent-window-square .window-edge-resize-layer.is-disabled {
   display: none;
 }
-
 
 /* === Serpent ui-tabs-viewer: calm image / video / model viewer chrome ===
    Quieter floating bars, softer contrast, tighter spacing. No library-
@@ -16189,7 +15949,6 @@ html.serpent-window-square .window-edge-resize-layer.is-disabled {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-
 
 /* === Serpent ui-card-caption: caption alignment + micro polish === */
 .justified-card-slot .asset-caption,
@@ -16731,7 +16490,6 @@ html.serpent-window-square .window-edge-resize-layer.is-disabled {
   background: var(--raised);
   color: var(--tertiary);
 }
-
 
 /* ---- a18: workspace tabs fuse with the toolstrip; icon-only filter segments ---- */
 /* The active tab + its scoops paint var(--canvas); rebinding it on the tab
@@ -18151,7 +17909,6 @@ html.serpent-window-square .window-edge-resize-layer.is-disabled {
   margin: 0;
 }
 
-
 /* ==== a76: soften accent-soft button fills ================================
    Accent text on soft accent wash was eye-searing. Quieter soft fills;
    keep accent-soft-fg readable; keep full --accent for scores (a70). */
@@ -18265,7 +18022,6 @@ html.serpent-window-square {
 .app-shell[data-shell-layout="islands"].left-collapsed .toolbar-workspace-cluster {
   padding-left: 8px;
 }
-
 
 /* ==== a79: pin filter bar to second row ===================================
    a28 row+wrap let discovery jump onto the title row when space allowed.
@@ -18967,29 +18723,29 @@ body.platform-darwin .app-shell[data-shell-layout="islands"] .toolbar-nav-cluste
    backdrop-filter: none` under any acrylic level, and level 1 context menus
    were 92% opaque (visually solid). All menu surfaces now share one
    translucent + blurred treatment per acrylic level; level 0 stays solid. */
-:root[data-menu-acrylic] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu, .workspace-tools-overflow-menu):is(*, #a91-acrylic-specificity) {
+:root[data-menu-acrylic] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu):is(*, #a91-acrylic-specificity) {
   --menu-acrylic-fill: var(--menu-surface-background, var(--ui-surface-overlay));
 }
 
-:root[data-menu-acrylic="0"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu, .workspace-tools-overflow-menu):is(*, #a91-acrylic-specificity) {
+:root[data-menu-acrylic="0"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu):is(*, #a91-acrylic-specificity) {
   background: var(--menu-acrylic-fill);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-:root[data-menu-acrylic="1"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu, .workspace-tools-overflow-menu):is(*, #a91-acrylic-specificity) {
+:root[data-menu-acrylic="1"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu):is(*, #a91-acrylic-specificity) {
   background: color-mix(in oklab, var(--menu-acrylic-fill) 80%, transparent);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
   backdrop-filter: blur(18px) saturate(1.5);
 }
 
-:root[data-menu-acrylic="2"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu, .workspace-tools-overflow-menu):is(*, #a91-acrylic-specificity) {
+:root[data-menu-acrylic="2"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu):is(*, #a91-acrylic-specificity) {
   background: color-mix(in oklab, var(--menu-acrylic-fill) 70%, transparent);
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
   backdrop-filter: blur(24px) saturate(1.6);
 }
 
-:root[data-menu-acrylic="3"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu, .workspace-tools-overflow-menu):is(*, #a91-acrylic-specificity) {
+:root[data-menu-acrylic="3"] :is(.ui-menu-surface, .context-menu, .main-menu-surface, .main-menu-submenu, .library-switcher-menu):is(*, #a91-acrylic-specificity) {
   background: color-mix(in oklab, var(--menu-acrylic-fill) 58%, transparent);
   -webkit-backdrop-filter: blur(32px) saturate(1.7);
   backdrop-filter: blur(32px) saturate(1.7);
@@ -19015,7 +18771,6 @@ body.platform-darwin .app-shell[data-shell-layout="islands"] .toolbar-nav-cluste
 .app-settings-content * {
   overflow-anchor: none;
 }
-
 
 /* a93: tag-chip shape follows the corner-radius tier (left corners, shoulders
    and nose rounded in sync; level 2 keeps the a82 SVG). */

@@ -38,7 +38,6 @@ const emptySnapshot: DialogEscapeSnapshot = {
   appLogOpen: false,
   aboutOpen: false,
   openSourceLicensesOpen: false,
-  scriptSandboxPreviewOpen: false,
   mediaJobsOpen: false,
   linkedRulesEditorOpen: false,
   convertLinkedOpen: false,

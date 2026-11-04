@@ -21,7 +21,6 @@ const empty: DialogEscapeSnapshot = {
   appSettingsOpen: false,
   librarySettingsOpen: false,
   appLogOpen: false,
-  scriptSandboxPreviewOpen: false,
   aboutOpen: false,
   openSourceLicensesOpen: false,
   mediaJobsOpen: false,
@@ -232,16 +231,6 @@ describe("dialog-escape-stack", () => {
         mediaJobsOpen: true,
       }),
     ).toEqual({ kind: "close-app-log" });
-  });
-
-  it("closes the script sandbox preview above background jobs", () => {
-    expect(
-      resolveDialogEscapeAction({
-        ...empty,
-        scriptSandboxPreviewOpen: true,
-        mediaJobsOpen: true,
-      }),
-    ).toEqual({ kind: "close-script-sandbox-preview" });
   });
 
   it("dismisses the plugin trust prompt below ordinary dialogs", () => {

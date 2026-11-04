@@ -299,7 +299,6 @@ import { LibrarySettingsDialog } from "./LibrarySettingsDialog";
 import { OpenSyncLibraryDialog } from "./OpenSyncLibraryDialog";
 import { AppLogDialog } from "./AppLogDialog";
 import { LibraryRecoveryDialog } from "./LibraryRecoveryDialog";
-import { ScriptSandboxPreviewDialog } from "./ScriptSandboxPreviewDialog";
 import {
   shouldApplyLibraryLifecycleEvent,
   shouldDetachLibraryOnOpening,
@@ -427,7 +426,6 @@ import { PluginWorkspaceViews } from "./plugin-workspace-views";
 import { useExternalImportHandlers } from "./use-external-import-handlers";
 import { useFolderDragDropHandlers } from "./use-folder-drag-drop-handlers";
 import { WorkspaceNoticeBanner } from "./WorkspaceNoticeBanner";
-import { WorkspaceToolsOverflow } from "./WorkspaceToolsOverflow";
 import {
   MANAGED_FOLDERS_DRAG_TYPE,
   resolveDraggedFolderIds,
@@ -537,12 +535,9 @@ import {
   embeddingServiceTextOnly,
   LOCAL_SEMANTIC_ENCODE_MODALITIES,
 } from "../shared/embedding/modalities";
-import {
-  semanticBackgroundWorkActive,
-  semanticToolbarReady,
-} from "./semantic-work";
+import { semanticToolbarReady } from "./semantic-work";
 import { resolveEffectiveEmbeddingSelection } from "../shared/embedding/library-binding";
-import { subscribeEmbeddingCatalog, subscribeEmbeddingInstallActivity } from "./embedding-catalog-events";
+import { subscribeEmbeddingCatalog } from "./embedding-catalog-events";
 import {
   resolveFindSimilar,
   canFindSimilarForAsset,
@@ -1914,7 +1909,6 @@ function AppInner() {
   const [appLogOpen, setAppLogOpen] = useState(false);
   const [libraryRecoveryDialogOpen, setLibraryRecoveryDialogOpen] =
     useState(false);
-  const [scriptSandboxPreviewOpen, setScriptSandboxPreviewOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [appUpdateCheck, setAppUpdateCheck] = useState<AppUpdateCheckResult | null>(null);
   const [appUpdateInstall, setAppUpdateInstall] = useState<AppUpdateInstallResult | null>(null);
@@ -2804,14 +2798,12 @@ function AppInner() {
     models: Array<{ modelId: SemanticSearchModelId; installed: boolean }>;
   } | null>(null);
   const [embeddingServices, setEmbeddingServices] = useState<EmbeddingHttpServiceSummary[]>([]);
-  const [embeddingInstalling, setEmbeddingInstalling] = useState(false);
   const embeddingRestartRef = useRef(true);
   const lastStartedSelectionRef = useRef<string | null>(null);
   const embeddingSelectionRef = useRef<string | null>(null);
   useEffect(() => subscribeSemanticSearchPreferences(() => {
     setSemanticSearchPrefs(loadSemanticSearchPreferences());
   }), []);
-  useEffect(() => subscribeEmbeddingInstallActivity(setEmbeddingInstalling), []);
   const openLibraryId = library?.libraryId ?? null;
   useEffect(() => {
     if (!api || !openLibraryId) return;
@@ -2933,7 +2925,6 @@ function AppInner() {
     embeddingIndex.phase,
   ]);
   const semanticSearchActive = embeddingSearchReady && semanticSearchPrefs.searchMode === "semantic";
-  const pluginJobsActive = hasActivePluginJobs(pluginJobs);
   const pluginJobActivityCandidate = selectPluginJobActivity(pluginJobs);
   const pluginJobActivity =
     pluginJobActivityCandidate?.jobId === hiddenPluginJobActivityId
@@ -2943,17 +2934,6 @@ function AppInner() {
     pluginJobs,
     pluginJobActivity?.jobId,
   );
-  const backgroundJobsActive = useMemo(() => {
-    if (aiAnalyzing) return true;
-    const mediaActive =
-      (mediaJobs?.queued ?? 0) + (mediaJobs?.running ?? 0) > 0;
-    const aiActive = (aiJobs?.queued ?? 0) + (aiJobs?.running ?? 0) > 0;
-    return mediaActive || aiActive || pluginJobsActive || semanticBackgroundWorkActive({
-      installing: embeddingInstalling,
-      enabled: embeddingSearchReady,
-      phase: embeddingIndex.phase,
-    });
-  }, [aiAnalyzing, aiJobs, embeddingIndex.phase, embeddingInstalling, embeddingSearchReady, mediaJobs, pluginJobsActive]);
   const openMediaJobs = useCallback(() => {
     setMediaJobsLoading(true);
     setMediaJobsOpen(true);
@@ -4999,7 +4979,6 @@ function AppInner() {
   // full-window centered with backdrop — not a card inside the canvas.
   useEffect(() => {
     if (library) return;
-    if (scriptSandboxPreviewOpen) return;
     // Keep the required start surface closed while any import flow owns the
     // foreground. The native ZIP picker can take long enough for the chooser
     // to close before its progress event arrives; without this guard the
@@ -5021,7 +5000,6 @@ function AppInner() {
     importProgress,
     appSettingsOpen,
     busy,
-    scriptSandboxPreviewOpen,
     t,
   ]);
   // Yield the required create surface while another full-window modal is up.
@@ -5140,7 +5118,6 @@ function AppInner() {
         if (!shouldApplyLibraryLifecycleEvent({
           event,
           currentLibraryId: libraryRef.current?.libraryId,
-          scriptSandboxPreviewOpen,
         })) return;
         try {
           beginLibraryTransition();
@@ -5180,7 +5157,6 @@ function AppInner() {
     locale,
     refreshRecentLibraries,
     resetWorkspaceTabs,
-    scriptSandboxPreviewOpen,
     libraryTransitionLock,
     setError,
     setNotice,
@@ -8502,19 +8478,6 @@ function AppInner() {
     if (next.reload) scheduleFilteredBrowseReconcile(0);
   }
   syncBrowseFilterMembershipRef.current = syncBrowseFilterMembership;
-
-  async function refreshAfterAutomationScript() {
-    try {
-      // A script may issue hundreds of write commands. Refresh once after the
-      // execution settles so cards retain the current browse scope/selection
-      // and Inspector reflects committed metadata without a reload per batch.
-      await reloadCurrentContent();
-      const selected = selectedAssetIdRef.current;
-      if (selected) await refreshTagAndMetadataState(selected);
-    } catch (caught) {
-      setError(toMessage(caught, t("toast.diskChangedRefreshFailed"), locale));
-    }
-  }
 
   const {
     batchAssignTagToSelection,
@@ -12076,7 +12039,6 @@ function AppInner() {
       appSettingsOpen,
       librarySettingsOpen,
       appLogOpen,
-      scriptSandboxPreviewOpen,
       aboutOpen,
       openSourceLicensesOpen,
       mediaJobsOpen: Boolean(mediaJobsOpen && library !== null),
@@ -12108,7 +12070,6 @@ function AppInner() {
     appSettingsOpen,
     librarySettingsOpen,
     appLogOpen,
-    scriptSandboxPreviewOpen,
     aboutOpen,
     openSourceLicensesOpen,
     mediaJobsOpen,
@@ -12151,7 +12112,6 @@ function AppInner() {
     setAppSettingsOpen,
     setLibrarySettingsOpen,
     setAppLogOpen,
-    setScriptSandboxPreviewOpen,
     setAboutOpen,
     setOpenSourceLicensesOpen,
     setMediaJobsOpen,
@@ -12210,7 +12170,6 @@ function AppInner() {
       appSettingsOpen ||
       librarySettingsOpen ||
       appLogOpen ||
-      scriptSandboxPreviewOpen ||
       aboutOpen ||
       openSourceLicensesOpen ||
       Boolean(smartCollectionSettings) ||
@@ -14867,23 +14826,28 @@ function AppInner() {
               selectedAssets={selectedVisibleAssets}
               context={pluginSurfaceContext}
             />
-            <span className="tool-separator" />
-            <WorkspaceToolsOverflow
-              items={[
-                {
-                  active: backgroundJobsActive,
-                  disabled: library === null,
-                  id: "background-jobs",
-                  label: t("toolbar.backgroundJobs"),
-                  onSelect: openMediaJobs,
-                },
-                {
-                  id: "script-sandbox-preview",
-                  label: t("automation.preview.open"),
-                  onSelect: () => setScriptSandboxPreviewOpen(true),
-                },
-              ]}
-            />
+            {library &&
+              !showTrash &&
+              !showTagManagement &&
+              !showPluginSidebarView &&
+              browseCanvasBodyLayout.mode !== "empty" && (
+                <>
+                  <span className="tool-separator" />
+                  <button
+                    className="compact-action is-accent"
+                    disabled={busy || libraryLoading !== null}
+                    onClick={() =>
+                      void importAssets("files", {
+                        targetCollectionId: activeCollectionId ?? undefined,
+                      })
+                    }
+                    type="button"
+                  >
+                    <Icon name="upload" size={14} />
+                    {t("toolbar.importFile")}
+                  </button>
+                </>
+              )}
           </div>
         </div>
         <PluginWorkspaceViews
@@ -16658,19 +16622,6 @@ function AppInner() {
           recovery={library.recovery}
         />
       )}
-      <ScriptSandboxPreviewDialog
-        automation={(window as RendererWindow).serpent?.automation}
-        libraryId={library?.libraryId ?? null}
-        onClose={() => {
-          setScriptSandboxPreviewOpen(false);
-        }}
-        onExecutionSettled={() => refreshAfterAutomationScript()}
-        onOpenExecutionLog={(logId) => {
-          setScriptSandboxPreviewOpen(false);
-          openAppLog(logId);
-        }}
-        open={scriptSandboxPreviewOpen}
-      />
       <AboutDialog
         open={aboutOpen}
         version={SERPENT_VERSION}

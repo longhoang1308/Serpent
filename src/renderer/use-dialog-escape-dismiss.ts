@@ -27,7 +27,6 @@ export type UseDialogEscapeDismissParams = {
   setAppSettingsOpen: (open: boolean) => void;
   setLibrarySettingsOpen: (open: boolean) => void;
   setAppLogOpen: (open: boolean) => void;
-  setScriptSandboxPreviewOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
   setOpenSourceLicensesOpen: (open: boolean) => void;
   setMediaJobsOpen: (open: boolean) => void;
@@ -69,7 +68,6 @@ export function useDialogEscapeDismiss({
   setAppSettingsOpen,
   setLibrarySettingsOpen,
   setAppLogOpen,
-  setScriptSandboxPreviewOpen,
   setAboutOpen,
   setOpenSourceLicensesOpen,
   setMediaJobsOpen,
@@ -162,9 +160,6 @@ export function useDialogEscapeDismiss({
         case "close-app-log":
           setAppLogOpen(false);
           return;
-        case "close-script-sandbox-preview":
-          setScriptSandboxPreviewOpen(false);
-          return;
         case "close-about":
           setAboutOpen(false);
           return;
@@ -225,7 +220,6 @@ export function useDialogEscapeDismiss({
     setAppSettingsOpen,
     setLibrarySettingsOpen,
     setAppLogOpen,
-    setScriptSandboxPreviewOpen,
     setAboutOpen,
     setOpenSourceLicensesOpen,
     setMediaJobsOpen,
