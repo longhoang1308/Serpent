@@ -73,7 +73,7 @@ describe("resolveBrowseEmptyState", () => {
     ).toBe("empty.folderBody");
   });
 
-  it("hides import CTAs for an empty collection", () => {
+  it("shows import CTAs for an empty collection", () => {
     expect(
       resolveBrowseEmptyState({
         showTrash: false,
@@ -85,7 +85,7 @@ describe("resolveBrowseEmptyState", () => {
       kind: "collection",
       titleKey: "empty.collectionTitle",
       detailKey: "empty.collectionBody",
-      showImportActions: false,
+      showImportActions: true,
       icon: "collection",
     });
   });

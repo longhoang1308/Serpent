@@ -296,6 +296,7 @@ export const zhCN = {
     clearSearchHistory: "清空",
     searchingFor: "正在搜索：{query}",
     importFiles: "导入文件",
+    importFile: "导入文件",
     importFolder: "导入文件夹",
     importExternalLibrary: "导入外部资源库",
     importEagleLibrary: "导入 Eagle 资源库",
@@ -2331,7 +2332,7 @@ export const zhCN = {
     trashBody: "移入回收站的资产会显示在这里。",
     collectionTitle: "此合集为空",
     collectionBody:
-      "从资源库拖入资产，或通过右键加入合集。资源库菜单中的文件夹/链接文件夹导入会进入 Assets，不会自动加入此合集。",
+      "在此导入文件，从资源库拖入资产，或通过右键加入合集。资源库菜单中的链接文件夹导入会进入 Assets，不会自动加入此合集。",
     smartCollectionTitle: "没有符合此智能合集的资产",
     smartCollectionBody:
       "智能合集显示符合已保存查询条件的资产。资源库菜单中的导入进入资源库，不会写入此查询。",

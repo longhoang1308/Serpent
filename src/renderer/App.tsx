@@ -45,7 +45,9 @@ import {
   isCardHoverPreviewable,
   isCardSequencePlayable,
   resolveAssetCardCoverUrl,
+  sourceSrc,
 } from "./asset-card-hover-preview";
+import { isLargeCardSourceCandidate } from "../shared/preview-policy";
 import { shouldShowThumbnailFailureBadge } from "./thumbnail-failure-badge";
 import { viewportPriorityReportKey } from "../shared/viewport-priority";
 import {
@@ -299,7 +301,6 @@ import { LibrarySettingsDialog } from "./LibrarySettingsDialog";
 import { OpenSyncLibraryDialog } from "./OpenSyncLibraryDialog";
 import { AppLogDialog } from "./AppLogDialog";
 import { LibraryRecoveryDialog } from "./LibraryRecoveryDialog";
-import { ScriptSandboxPreviewDialog } from "./ScriptSandboxPreviewDialog";
 import {
   shouldApplyLibraryLifecycleEvent,
   shouldDetachLibraryOnOpening,
@@ -427,7 +428,6 @@ import { PluginWorkspaceViews } from "./plugin-workspace-views";
 import { useExternalImportHandlers } from "./use-external-import-handlers";
 import { useFolderDragDropHandlers } from "./use-folder-drag-drop-handlers";
 import { WorkspaceNoticeBanner } from "./WorkspaceNoticeBanner";
-import { WorkspaceToolsOverflow } from "./WorkspaceToolsOverflow";
 import {
   MANAGED_FOLDERS_DRAG_TYPE,
   resolveDraggedFolderIds,
@@ -537,12 +537,9 @@ import {
   embeddingServiceTextOnly,
   LOCAL_SEMANTIC_ENCODE_MODALITIES,
 } from "../shared/embedding/modalities";
-import {
-  semanticBackgroundWorkActive,
-  semanticToolbarReady,
-} from "./semantic-work";
+import { semanticToolbarReady } from "./semantic-work";
 import { resolveEffectiveEmbeddingSelection } from "../shared/embedding/library-binding";
-import { subscribeEmbeddingCatalog, subscribeEmbeddingInstallActivity } from "./embedding-catalog-events";
+import { subscribeEmbeddingCatalog } from "./embedding-catalog-events";
 import {
   resolveFindSimilar,
   canFindSimilarForAsset,
@@ -1914,7 +1911,6 @@ function AppInner() {
   const [appLogOpen, setAppLogOpen] = useState(false);
   const [libraryRecoveryDialogOpen, setLibraryRecoveryDialogOpen] =
     useState(false);
-  const [scriptSandboxPreviewOpen, setScriptSandboxPreviewOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [appUpdateCheck, setAppUpdateCheck] = useState<AppUpdateCheckResult | null>(null);
   const [appUpdateInstall, setAppUpdateInstall] = useState<AppUpdateInstallResult | null>(null);
@@ -2804,14 +2800,12 @@ function AppInner() {
     models: Array<{ modelId: SemanticSearchModelId; installed: boolean }>;
   } | null>(null);
   const [embeddingServices, setEmbeddingServices] = useState<EmbeddingHttpServiceSummary[]>([]);
-  const [embeddingInstalling, setEmbeddingInstalling] = useState(false);
   const embeddingRestartRef = useRef(true);
   const lastStartedSelectionRef = useRef<string | null>(null);
   const embeddingSelectionRef = useRef<string | null>(null);
   useEffect(() => subscribeSemanticSearchPreferences(() => {
     setSemanticSearchPrefs(loadSemanticSearchPreferences());
   }), []);
-  useEffect(() => subscribeEmbeddingInstallActivity(setEmbeddingInstalling), []);
   const openLibraryId = library?.libraryId ?? null;
   useEffect(() => {
     if (!api || !openLibraryId) return;
@@ -2933,7 +2927,6 @@ function AppInner() {
     embeddingIndex.phase,
   ]);
   const semanticSearchActive = embeddingSearchReady && semanticSearchPrefs.searchMode === "semantic";
-  const pluginJobsActive = hasActivePluginJobs(pluginJobs);
   const pluginJobActivityCandidate = selectPluginJobActivity(pluginJobs);
   const pluginJobActivity =
     pluginJobActivityCandidate?.jobId === hiddenPluginJobActivityId
@@ -2943,17 +2936,6 @@ function AppInner() {
     pluginJobs,
     pluginJobActivity?.jobId,
   );
-  const backgroundJobsActive = useMemo(() => {
-    if (aiAnalyzing) return true;
-    const mediaActive =
-      (mediaJobs?.queued ?? 0) + (mediaJobs?.running ?? 0) > 0;
-    const aiActive = (aiJobs?.queued ?? 0) + (aiJobs?.running ?? 0) > 0;
-    return mediaActive || aiActive || pluginJobsActive || semanticBackgroundWorkActive({
-      installing: embeddingInstalling,
-      enabled: embeddingSearchReady,
-      phase: embeddingIndex.phase,
-    });
-  }, [aiAnalyzing, aiJobs, embeddingIndex.phase, embeddingInstalling, embeddingSearchReady, mediaJobs, pluginJobsActive]);
   const openMediaJobs = useCallback(() => {
     setMediaJobsLoading(true);
     setMediaJobsOpen(true);
@@ -4999,7 +4981,6 @@ function AppInner() {
   // full-window centered with backdrop — not a card inside the canvas.
   useEffect(() => {
     if (library) return;
-    if (scriptSandboxPreviewOpen) return;
     // Keep the required start surface closed while any import flow owns the
     // foreground. The native ZIP picker can take long enough for the chooser
     // to close before its progress event arrives; without this guard the
@@ -5021,7 +5002,6 @@ function AppInner() {
     importProgress,
     appSettingsOpen,
     busy,
-    scriptSandboxPreviewOpen,
     t,
   ]);
   // Yield the required create surface while another full-window modal is up.
@@ -5140,7 +5120,6 @@ function AppInner() {
         if (!shouldApplyLibraryLifecycleEvent({
           event,
           currentLibraryId: libraryRef.current?.libraryId,
-          scriptSandboxPreviewOpen,
         })) return;
         try {
           beginLibraryTransition();
@@ -5180,7 +5159,6 @@ function AppInner() {
     locale,
     refreshRecentLibraries,
     resetWorkspaceTabs,
-    scriptSandboxPreviewOpen,
     libraryTransitionLock,
     setError,
     setNotice,
@@ -8503,19 +8481,6 @@ function AppInner() {
   }
   syncBrowseFilterMembershipRef.current = syncBrowseFilterMembership;
 
-  async function refreshAfterAutomationScript() {
-    try {
-      // A script may issue hundreds of write commands. Refresh once after the
-      // execution settles so cards retain the current browse scope/selection
-      // and Inspector reflects committed metadata without a reload per batch.
-      await reloadCurrentContent();
-      const selected = selectedAssetIdRef.current;
-      if (selected) await refreshTagAndMetadataState(selected);
-    } catch (caught) {
-      setError(toMessage(caught, t("toast.diskChangedRefreshFailed"), locale));
-    }
-  }
-
   const {
     batchAssignTagToSelection,
     batchRemoveTagFromSelection,
@@ -9874,8 +9839,12 @@ function AppInner() {
 
   // --- Existing operations ---
 
-  async function importAssets(kind: "files" | "folder") {
+  async function importAssets(
+    kind: "files" | "folder",
+    options?: { targetCollectionId?: string },
+  ) {
     if (!api || !library) return;
+    const targetCollectionId = options?.targetCollectionId;
     const startedAt = Date.now();
     setUiState("importing");
     setError(null);
@@ -9911,8 +9880,26 @@ function AppInner() {
         },
       });
       if (!completion) return;
-      setNotice(importSummaryMessage(completion, locale));
-      await revealAfterImport(completion);
+      if (targetCollectionId && completion.assets.length > 0) {
+        // Dialog import lands in the library; joining the collection is a
+        // second step so the empty-collection CTA fills the collection.
+        const added = await api.addCollectionAssets({
+          libraryId: library.libraryId,
+          collectionId: targetCollectionId,
+          assetIds: completion.assets.map((asset) => asset.assetId),
+        });
+        if (!added.ok) throw new LibraryOperationError(added.error);
+        const collectionResult = await api.listCollections({
+          libraryId: library.libraryId,
+        });
+        if (collectionResult.ok) setCollections(collectionResult.value);
+        setNotice(importSummaryMessage(completion, locale));
+        setFolderBrowseRefreshToken((token) => token + 1);
+        await reloadCurrentContent({ blockingNavigation: true });
+      } else {
+        setNotice(importSummaryMessage(completion, locale));
+        await revealAfterImport(completion);
+      }
       offerPostImportImageSequences(completion.assets);
       playTaskCompletionSound(startedAt);
     } catch (caught) {
@@ -12054,7 +12041,6 @@ function AppInner() {
       appSettingsOpen,
       librarySettingsOpen,
       appLogOpen,
-      scriptSandboxPreviewOpen,
       aboutOpen,
       openSourceLicensesOpen,
       mediaJobsOpen: Boolean(mediaJobsOpen && library !== null),
@@ -12086,7 +12072,6 @@ function AppInner() {
     appSettingsOpen,
     librarySettingsOpen,
     appLogOpen,
-    scriptSandboxPreviewOpen,
     aboutOpen,
     openSourceLicensesOpen,
     mediaJobsOpen,
@@ -12129,7 +12114,6 @@ function AppInner() {
     setAppSettingsOpen,
     setLibrarySettingsOpen,
     setAppLogOpen,
-    setScriptSandboxPreviewOpen,
     setAboutOpen,
     setOpenSourceLicensesOpen,
     setMediaJobsOpen,
@@ -12188,7 +12172,6 @@ function AppInner() {
       appSettingsOpen ||
       librarySettingsOpen ||
       appLogOpen ||
-      scriptSandboxPreviewOpen ||
       aboutOpen ||
       openSourceLicensesOpen ||
       Boolean(smartCollectionSettings) ||
@@ -14845,23 +14828,28 @@ function AppInner() {
               selectedAssets={selectedVisibleAssets}
               context={pluginSurfaceContext}
             />
-            <span className="tool-separator" />
-            <WorkspaceToolsOverflow
-              items={[
-                {
-                  active: backgroundJobsActive,
-                  disabled: library === null,
-                  id: "background-jobs",
-                  label: t("toolbar.backgroundJobs"),
-                  onSelect: openMediaJobs,
-                },
-                {
-                  id: "script-sandbox-preview",
-                  label: t("automation.preview.open"),
-                  onSelect: () => setScriptSandboxPreviewOpen(true),
-                },
-              ]}
-            />
+            {library &&
+              !showTrash &&
+              !showTagManagement &&
+              !showPluginSidebarView &&
+              browseCanvasBodyLayout.mode !== "empty" && (
+                <>
+                  <span className="tool-separator" />
+                  <button
+                    className="compact-action is-accent"
+                    disabled={busy || libraryLoading !== null}
+                    onClick={() =>
+                      void importAssets("files", {
+                        targetCollectionId: activeCollectionId ?? undefined,
+                      })
+                    }
+                    type="button"
+                  >
+                    <Icon name="upload" size={14} />
+                    {t("toolbar.importFile")}
+                  </button>
+                </>
+              )}
           </div>
         </div>
         <PluginWorkspaceViews
@@ -15258,6 +15246,24 @@ function AppInner() {
                         previewKind: asset.previewKind,
                         previewRevisionId: asset.previewRevisionId,
                       });
+                      // Large cards outgrow the bounded thumbnail; the card
+                      // layers the original over it once drawn that large.
+                      const cardSourceUrl =
+                        library &&
+                        !cardCover.usedSourceFallback &&
+                        asset.availability !== "missing" &&
+                        !asset.deletedAt &&
+                        isLargeCardSourceCandidate({
+                          fileName: asset.relativeFilePath,
+                          mediaType: asset.mediaType,
+                          byteSize: asset.byteSize,
+                        })
+                          ? sourceSrc(
+                              library.libraryId,
+                              asset.assetId,
+                              asset.currentRevisionId,
+                            )
+                          : null;
                       const showThumbnailFailure = shouldShowThumbnailFailureBadge(
                         asset,
                         thumbnailFailures.has(asset.assetId),
@@ -15563,6 +15569,7 @@ function AppInner() {
                               <AssetCardMedia
                                 alt={asset.displayName}
                                 coverUrl={thumbCover}
+                                sourceUrl={cardSourceUrl}
                                 failed={cardThumbFailed}
                                 hovering={hoveredAssetId === asset.assetId}
                                 hoverAudioPlay={canvasPrefs.hoverAudioPlay}
@@ -15907,7 +15914,14 @@ function AppInner() {
                     <button
                       className="primary-button"
                       disabled={libraryLoading !== null}
-                      onClick={() => void importAssets("files")}
+                      onClick={() =>
+                        void importAssets("files", {
+                          targetCollectionId:
+                            browseEmptyState.kind === "collection"
+                              ? activeCollectionId ?? undefined
+                              : undefined,
+                        })
+                      }
                       type="button"
                     >
                       {t("toolbar.importFiles")}
@@ -15915,7 +15929,14 @@ function AppInner() {
                     <button
                       className="secondary-button"
                       disabled={libraryLoading !== null}
-                      onClick={() => void importAssets("folder")}
+                      onClick={() =>
+                        void importAssets("folder", {
+                          targetCollectionId:
+                            browseEmptyState.kind === "collection"
+                              ? activeCollectionId ?? undefined
+                              : undefined,
+                        })
+                      }
                       type="button"
                     >
                       {t("toolbar.importFolder")}
@@ -16622,19 +16643,6 @@ function AppInner() {
           recovery={library.recovery}
         />
       )}
-      <ScriptSandboxPreviewDialog
-        automation={(window as RendererWindow).serpent?.automation}
-        libraryId={library?.libraryId ?? null}
-        onClose={() => {
-          setScriptSandboxPreviewOpen(false);
-        }}
-        onExecutionSettled={() => refreshAfterAutomationScript()}
-        onOpenExecutionLog={(logId) => {
-          setScriptSandboxPreviewOpen(false);
-          openAppLog(logId);
-        }}
-        open={scriptSandboxPreviewOpen}
-      />
       <AboutDialog
         open={aboutOpen}
         version={SERPENT_VERSION}

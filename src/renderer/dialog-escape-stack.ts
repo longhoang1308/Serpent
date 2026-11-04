@@ -19,7 +19,6 @@ export type DialogEscapeSnapshot = {
   appSettingsOpen: boolean;
   librarySettingsOpen: boolean;
   appLogOpen: boolean;
-  scriptSandboxPreviewOpen: boolean;
   aboutOpen: boolean;
   openSourceLicensesOpen: boolean;
   mediaJobsOpen: boolean;
@@ -61,7 +60,6 @@ export type DialogEscapeAction =
   | { kind: "close-app-settings" }
   | { kind: "close-library-settings" }
   | { kind: "close-app-log" }
-  | { kind: "close-script-sandbox-preview" }
   | { kind: "close-about" }
   | { kind: "close-open-source-licenses" }
   | { kind: "close-media-jobs" }
@@ -134,9 +132,6 @@ export function resolveDialogEscapeAction(
   if (snapshot.appSettingsOpen) return { kind: "close-app-settings" };
   if (snapshot.librarySettingsOpen) return { kind: "close-library-settings" };
   if (snapshot.appLogOpen) return { kind: "close-app-log" };
-  if (snapshot.scriptSandboxPreviewOpen) {
-    return { kind: "close-script-sandbox-preview" };
-  }
   if (snapshot.aboutOpen) return { kind: "close-about" };
   if (snapshot.openSourceLicensesOpen)
     return { kind: "close-open-source-licenses" };

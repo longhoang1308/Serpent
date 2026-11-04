@@ -40,9 +40,10 @@ export type ImportMenuCopy = {
  *
  * Priority: active search/discovery narrowing → trash → smart collection →
  * collection → true folder/library empty.
- * Only the folder path keeps import CTAs (CU-B6 / CU-B7 / CU-U5).
- * Collection / smart-collection empty states hide import CTAs so users are not
- * led to believe dialog import targets the current collection view.
+ * Folder and collection empty states show import CTAs; the collection CTA
+ * imports into the library and then adds the new assets to the collection.
+ * Smart-collection empty states hide them because a saved query has no
+ * membership to add to.
  */
 export function resolveBrowseEmptyState(input: {
   showTrash: boolean;
@@ -83,7 +84,7 @@ export function resolveBrowseEmptyState(input: {
       kind: "collection",
       titleKey: "empty.collectionTitle",
       detailKey: "empty.collectionBody",
-      showImportActions: false,
+      showImportActions: true,
       icon: "collection",
     };
   }

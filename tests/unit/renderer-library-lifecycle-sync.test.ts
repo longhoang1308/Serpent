@@ -21,7 +21,6 @@ describe('renderer library lifecycle synchronization', () => {
     expect(shouldApplyLibraryLifecycleEvent({
       event: opened('meme-library', 'mcp'),
       currentLibraryId: 'reference-library',
-      scriptSandboxPreviewOpen: false,
     })).toBe(true);
   });
 
@@ -29,20 +28,13 @@ describe('renderer library lifecycle synchronization', () => {
     expect(shouldApplyLibraryLifecycleEvent({
       event: opened('meme-library'),
       currentLibraryId: 'reference-library',
-      scriptSandboxPreviewOpen: false,
     })).toBe(false);
-    expect(shouldApplyLibraryLifecycleEvent({
-      event: opened('meme-library'),
-      currentLibraryId: undefined,
-      scriptSandboxPreviewOpen: true,
-    })).toBe(true);
   });
 
   it('ignores an already visible library', () => {
     expect(shouldApplyLibraryLifecycleEvent({
       event: opened('reference-library', 'mcp'),
       currentLibraryId: 'reference-library',
-      scriptSandboxPreviewOpen: false,
     })).toBe(false);
   });
 });
