@@ -11,11 +11,17 @@ import { Icon } from "./Icons";
 import { SequenceFrameCanvas } from "./SequenceFrameCanvas";
 import { resolveSequenceFrameUrl } from "./sequence-frame-preview";
 import { useCardHoverScrub } from "./use-card-hover-scrub";
+import { useLargeCardSource } from "./use-large-card-source";
 
 interface AssetCardMediaProps {
   alt: string;
   /** Static thumbnail; shown whenever live preview is inactive or not ready. */
   coverUrl: string | null;
+  /**
+   * Original-file URL for a browser-decodable still. Layered over the cover
+   * only while the card is drawn larger than the bounded thumbnail covers.
+   */
+  sourceUrl?: string | null;
   /**
    * Virtual browse windows render only the current viewport and its small
    * overscan band. Those cards can ask Chromium to start decoding immediately
@@ -64,6 +70,7 @@ interface AssetCardMediaProps {
 export function AssetCardMedia({
   alt,
   coverUrl,
+  sourceUrl = null,
   loadImmediately = false,
   deferUntilVisible = false,
   isActive,
@@ -115,6 +122,18 @@ export function AssetCardMedia({
     setCoverUrlSeen(coverUrl);
     setErrored(false);
     setCoverAttempt(0);
+  }
+  const showLargeSource = useLargeCardSource(
+    mediaHostRef,
+    Boolean(sourceUrl) && shouldLoadCover && !isSequence && !failed,
+  );
+  const [sourceLoaded, setSourceLoaded] = useState(false);
+  const [sourceErrored, setSourceErrored] = useState(false);
+  const [sourceUrlSeen, setSourceUrlSeen] = useState(sourceUrl);
+  if (sourceUrlSeen !== sourceUrl) {
+    setSourceUrlSeen(sourceUrl);
+    setSourceLoaded(false);
+    setSourceErrored(false);
   }
   const retryCover = () => {
     if (coverAttempt < 2) {
@@ -195,6 +214,10 @@ export function AssetCardMedia({
   }
 
   const visibleCoverUrl = withCoverAttempt(shouldLoadCover ? coverUrl : null);
+  const visibleSourceUrl =
+    showLargeSource && !sourceErrored && visibleCoverUrl !== sourceUrl
+      ? sourceUrl
+      : null;
   return (
     <div className="asset-card-media" ref={mediaHostRef}>
       {visibleCoverUrl && !errored ? (
@@ -210,6 +233,18 @@ export function AssetCardMedia({
       ) : (
         fallbackIcon
       )}
+      {visibleSourceUrl ? (
+        <img
+          alt=""
+          aria-hidden="true"
+          className={`asset-thumbnail asset-card-source${sourceLoaded ? " is-loaded" : ""}`}
+          decoding="async"
+          loading="lazy"
+          onError={() => setSourceErrored(true)}
+          onLoad={() => setSourceLoaded(true)}
+          src={visibleSourceUrl}
+        />
+      ) : null}
       {live.kind === "gif" && live.url ? (
         <img
           alt=""

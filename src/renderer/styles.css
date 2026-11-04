@@ -12139,6 +12139,17 @@ select.ai-config-input.ai-config-languages {
   z-index: 1;
 }
 
+/* Original still layered over the bounded thumbnail on large cards. It stays
+   transparent until decoded so the thumbnail never blinks out. */
+.asset-card-media .asset-card-source {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.asset-card-media .asset-card-source.is-loaded {
+  opacity: 1;
+}
+
 /* Hover scrub: frosted capsule on the frame. Dark theme uses a brighter
    white frost so the bar stays readable; light keeps the approved 50% fill. */
 .asset-card-hover-progress {

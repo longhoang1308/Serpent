@@ -45,7 +45,9 @@ import {
   isCardHoverPreviewable,
   isCardSequencePlayable,
   resolveAssetCardCoverUrl,
+  sourceSrc,
 } from "./asset-card-hover-preview";
+import { isLargeCardSourceCandidate } from "../shared/preview-policy";
 import { shouldShowThumbnailFailureBadge } from "./thumbnail-failure-badge";
 import { viewportPriorityReportKey } from "../shared/viewport-priority";
 import {
@@ -15244,6 +15246,24 @@ function AppInner() {
                         previewKind: asset.previewKind,
                         previewRevisionId: asset.previewRevisionId,
                       });
+                      // Large cards outgrow the bounded thumbnail; the card
+                      // layers the original over it once drawn that large.
+                      const cardSourceUrl =
+                        library &&
+                        !cardCover.usedSourceFallback &&
+                        asset.availability !== "missing" &&
+                        !asset.deletedAt &&
+                        isLargeCardSourceCandidate({
+                          fileName: asset.relativeFilePath,
+                          mediaType: asset.mediaType,
+                          byteSize: asset.byteSize,
+                        })
+                          ? sourceSrc(
+                              library.libraryId,
+                              asset.assetId,
+                              asset.currentRevisionId,
+                            )
+                          : null;
                       const showThumbnailFailure = shouldShowThumbnailFailureBadge(
                         asset,
                         thumbnailFailures.has(asset.assetId),
@@ -15549,6 +15569,7 @@ function AppInner() {
                               <AssetCardMedia
                                 alt={asset.displayName}
                                 coverUrl={thumbCover}
+                                sourceUrl={cardSourceUrl}
                                 failed={cardThumbFailed}
                                 hovering={hoveredAssetId === asset.assetId}
                                 hoverAudioPlay={canvasPrefs.hoverAudioPlay}
